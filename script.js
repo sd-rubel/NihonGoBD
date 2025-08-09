@@ -118,25 +118,37 @@ function playTextToSpeech(text) {
 function showChromeFallbackModal() {
     // শুধুমাত্র সরল ও পরিষ্কার ফলব্যাক মডাল — পূর্বের সব শর্ত/বাটন মুছে ফেলা হয়েছে
     modalDetails.innerHTML = `
-        <div class="fallback-container" style="padding: 10px 12px; text-align: center;">
-            <h4 style="margin-bottom: 8px;">অডিও প্লে করা যাচ্ছে না</h4>
-            <p style="margin: 0 0 12px 0; color: var(--text-color); line-height: 1.5;">
+        <div class="fallback-container" style="padding: 20px; text-align: center; background-color: #f0f0f0; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <h4 style="margin-bottom: 10px; color: #333;">অডিও প্লে করা যাচ্ছে না</h4>
+            <p style="margin: 0 0 15px 0; color: #555; line-height: 1.6;">
                 অডিও শুনতে চাইলে নিচের লিংকটি কপি করে <strong>ক্রোম ব্রাউজার</strong>-এ খুলুন।<br>
-                যদি আপনি ইতিমধ্যে ক্রোম ব্যবহার করে থাকেন এবং তবুও সমস্যা হচ্ছে, অনুগ্রহ করে কয়েক মুহূর্ত অপেক্ষা করে পুনরায় চেষ্টা করুন।
+                যদি আপনি ইতিমধ্যেই ক্রোম ব্যবহার করে থাকেন এবং তবুও সমস্যা হচ্ছে, অনুগ্রহ করে কয়েক মুহূর্ত অপেক্ষা করে পুনরায় চেষ্টা করুন।
             </p>
-            <div style="display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap;">
-                <a id="fallback-site-link" href="${WEBSITE_LINK}" target="_blank" rel="noopener" style="word-break:break-all; color: var(--primary-color); max-width: 80%;">
+            <div style="display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;">
+                <a id="fallback-site-link" href="${WEBSITE_LINK}" target="_blank" rel="noopener" style="word-break:break-all; color: #007bff; text-decoration: none; max-width: 80%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background-color: #fff;">
                     ${WEBSITE_LINK}
                 </a>
-                <button id="copy-site-link-btn" class="copy-btn" style="padding: 8px 10px; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; cursor: pointer;">
-                    <i class="fa-solid fa-copy" style="margin-right:6px;"></i> <span style="color: #008DB2; font-weight: bold;">কপি করুন</span>
+                <button id="copy-site-link-btn" style="
+                    padding: 10px 15px; 
+                    border-radius: 6px; 
+                    border: none; 
+                    background-color: #28A745; 
+                    color: #FFFFFF; 
+                    font-weight: bold; 
+                    cursor: pointer; 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 8px;
+                    transition: background-color 0.3s ease;
+                ">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>কপি করুন</span>
                 </button>
             </div>
         </div>
     `;
-    // vocabularyModal ব্যবহার করা হচ্ছে (আপনার মূল কাঠামোর সাথে সামঞ্জস্য রাখতে)
+    
     vocabularyModal.style.display = 'flex';
-    // shareButton অপ্রয়োজনীয় — লুকানো রাখুন যাতে UI ঠিক থাকে
     if (shareButton) shareButton.style.display = 'none';
 
     // কপি বাটনে ইভেন্ট যোগ করা
@@ -145,7 +157,7 @@ function showChromeFallbackModal() {
         copyBtn.addEventListener('click', async () => {
             try {
                 await navigator.clipboard.writeText(WEBSITE_LINK);
-                showToast("কপি হয়েছে!");
+                showToast("লিংকটি কপি করা হয়েছে!");
             } catch (err) {
                 console.error('Failed to copy link: ', err);
                 showToast("কপি করা সম্ভব হয়নি।");
@@ -153,6 +165,7 @@ function showChromeFallbackModal() {
         });
     }
 }
+
 
 function showToast(message) {
     let toast = document.getElementById("toast-notification");
