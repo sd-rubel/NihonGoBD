@@ -116,31 +116,43 @@ function playTextToSpeech(text) {
 }
 
 function showChromeFallbackModal() {
+    // শুধুমাত্র সরল ও পরিষ্কার ফলব্যাক মডাল — পূর্বের সব শর্ত/বাটন মুছে ফেলা হয়েছে
     modalDetails.innerHTML = `
-        <div class="fallback-container">
-            <h4>অডিও প্লে করতে সমস্যা হচ্ছে।</h4>
-            <p style="text-align: center; color: var(--text-color);">
-                অডিও শুনতে চাইলে নিম্নে দেওয়া লিংকটি ক্রমে প্রবেশ করান, অথবা ক্রোম এ খুলুন বাটনে ক্লিক করুন।
+        <div class="fallback-container" style="padding: 10px 12px; text-align: center;">
+            <h4 style="margin-bottom: 8px;">অডিও প্লে করা যাচ্ছে না</h4>
+            <p style="margin: 0 0 12px 0; color: var(--text-color); line-height: 1.5;">
+                অডিও শুনতে চাইলে নিচের লিংকটি কপি করে <strong>ক্রোম ব্রাউজার</strong>-এ খুলুন।<br>
+                যদি আপনি ইতিমধ্যে ক্রোম ব্যবহার করে থাকেন এবং তবুও সমস্যা হচ্ছে, অনুগ্রহ করে কয়েক মুহূর্ত অপেক্ষা করে পুনরায় চেষ্টা করুন।
             </p>
-            <div style="margin-top: 15px; text-align: center;">
-                <a href="${WEBSITE_LINK}" style="color: var(--primary-color); word-break: break-all;">
+            <div style="display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap;">
+                <a id="fallback-site-link" href="${WEBSITE_LINK}" target="_blank" rel="noopener" style="word-break:break-all; color: var(--primary-color); max-width: 80%;">
                     ${WEBSITE_LINK}
                 </a>
+                <button id="copy-site-link-btn" class="copy-btn" style="padding: 8px 10px; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; cursor: pointer;">
+                    <i class="fa-solid fa-copy" style="margin-right:6px;"></i> কপি
+                </button>
             </div>
-            <button class="open-in-chrome-btn" id="open-in-chrome-btn" style="margin-top: 20px;">
-                <i class="fab fa-chrome"></i> ক্রোম এ খুলুন
-            </button>
         </div>
     `;
+    // vocabularyModal ব্যবহার করা হচ্ছে (আপনার মূল কাঠামোর সাথে সামঞ্জস্য রাখতে)
     vocabularyModal.style.display = 'flex';
-    shareButton.style.display = 'none';
+    // shareButton অপ্রয়োজনীয় — লুকানো রাখুন যাতে UI ঠিক থাকে
+    if (shareButton) shareButton.style.display = 'none';
 
-    document.getElementById('open-in-chrome-btn').addEventListener('click', () => {
-        window.open(WEBSITE_LINK, '_blank');
-        closeModal();
-    });
+    // কপি বাটনে ইভেন্ট যোগ করা
+    const copyBtn = document.getElementById('copy-site-link-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(WEBSITE_LINK);
+                showToast("কপি হয়েছে!");
+            } catch (err) {
+                console.error('Failed to copy link: ', err);
+                showToast("কপি করা সম্ভব হয়নি।");
+            }
+        });
+    }
 }
-
 
 function showToast(message) {
     let toast = document.getElementById("toast-notification");
