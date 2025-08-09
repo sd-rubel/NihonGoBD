@@ -87,6 +87,16 @@ function applyTheme(themeName) {
     }
 }
 
+// আগের playTextToSpeech ফাংশনটি আবার ব্যবহার করা হয়েছে
+function playTextToSpeech(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+
 function showToast(message) {
     let toast = document.getElementById("toast-notification");
     if (!toast) {
@@ -203,34 +213,52 @@ function renderVocabularyTable(vocabulary) {
 }
 
 function showVocabularyModal(item) {
-    modalDetails.innerHTML = `
+    let modalHTML = `
         <div class="modal-title-wrapper">
             <h3><span class="emoji">${item.emoji}</span> <span class="gradient-text">${item.japanese}</span></h3>
-            <i class="fa-solid fa-volume-up modal-audio-icon" data-text="${item.japanese}"></i>
         </div>
         <p style="font-style: italic; color: var(--light-text-color); margin-bottom: 5px;"><strong>উচ্চারণ:</strong> ${item.pronunciation}</p>
         <p style="color: var(--text-color); margin-bottom: 15px;"><strong>অর্থ:</strong> ${item.meaning}</p>
         <p style="font-size: 0.9em; color: var(--light-text-color); margin-bottom: 20px;"><strong>মন্তব্য:</strong> ${item.comment}</p>
         <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0)); margin: 15px 0;">
         <p style="font-weight: bold; margin-bottom: 5px; color: var(--primary-color);">উদাহরণ:</p>
-        <p style="margin-bottom: 5px;">${item.sentence.jp} <i class="fa-solid fa-volume-up modal-audio-icon" data-text="${item.sentence.jp}"></i></p>
+        <p style="margin-bottom: 5px;">${item.sentence.jp}</p>
         <p style="color: var(--text-color); margin-bottom: 5px;"><strong>বাংলা অনুবাদ:</strong> ${item.sentence.bn}</p>
         <p style="font-size: 0.9em; font-style: italic; color: var(--light-text-color);"><strong>উদাহরণ উচ্চারণ:</strong> ${item.sentence.pronunciation}</p>
     `;
+
+    // শুধুমাত্র যদি speechSynthesis সমর্থন করে, তাহলে অডিও আইকন যুক্ত করা হবে
+    if ('speechSynthesis' in window) {
+        modalHTML = `
+            <div class="modal-title-wrapper">
+                <h3><span class="emoji">${item.emoji}</span> <span class="gradient-text">${item.japanese}</span></h3>
+                <i class="fa-solid fa-volume-up modal-audio-icon" data-text="${item.japanese}"></i>
+            </div>
+            <p style="font-style: italic; color: var(--light-text-color); margin-bottom: 5px;"><strong>উচ্চারণ:</strong> ${item.pronunciation}</p>
+            <p style="color: var(--text-color); margin-bottom: 15px;"><strong>অর্থ:</strong> ${item.meaning}</p>
+            <p style="font-size: 0.9em; color: var(--light-text-color); margin-bottom: 20px;"><strong>মন্তব্য:</strong> ${item.comment}</p>
+            <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0)); margin: 15px 0;">
+            <p style="font-weight: bold; margin-bottom: 5px; color: var(--primary-color);">উদাহরণ:</p>
+            <p style="margin-bottom: 5px;">${item.sentence.jp} <i class="fa-solid fa-volume-up modal-audio-icon" data-text="${item.sentence.jp}"></i></p>
+            <p style="color: var(--text-color); margin-bottom: 5px;"><strong>বাংলা অনুবাদ:</strong> ${item.sentence.bn}</p>
+            <p style="font-size: 0.9em; font-style: italic; color: var(--light-text-color);"><strong>উদাহরণ উচ্চারণ:</strong> ${item.sentence.pronunciation}</p>
+        `;
+    }
+
+    modalDetails.innerHTML = modalHTML;
     vocabularyModal.style.display = 'flex';
     shareButton.style.display = 'flex';
 
-    const audioIcons = document.querySelectorAll('.modal-audio-icon');
-    audioIcons.forEach(icon => {
-        icon.addEventListener('click', () => {
-            const textToSpeak = icon.dataset.text;
-            if (window.responsiveVoice) {
-                responsiveVoice.speak(textToSpeak, 'Japanese Female');
-            } else {
-                showToast("অডিও সার্ভিস লোড হতে সমস্যা হচ্ছে।");
-            }
+    // শুধুমাত্র যদি আইকন থাকে, তাহলে ইভেন্ট লিসেনার যুক্ত করা হবে
+    if ('speechSynthesis' in window) {
+        const audioIcons = document.querySelectorAll('.modal-audio-icon');
+        audioIcons.forEach(icon => {
+            icon.addEventListener('click', () => {
+                const textToSpeak = icon.dataset.text;
+                playTextToSpeech(textToSpeak);
+            });
         });
-    });
+    }
 }
 
 function showModalFallback(featureName) {
@@ -250,12 +278,7 @@ function showModalFallback(featureName) {
 👇 লিঙ্ক: ${TELEGRAM_LINK}
 `;
         showCopyBtn = true;
-    } else if (featureName === 'Text-to-Speech') {
-        // এই ব্লকটি এখন অপ্রয়োজনীয়, কারণ ResponsiveVoice কাজ না করলে অন্য মেসেজ দেখাবে।
-        // তবে, পুরনো কোডের সুরক্ষার জন্য এটি রেখে দেওয়া হয়েছে।
-        title = 'দুঃখিত, এই ব্রাউজারটি অডিও সমর্থন করে না।';
-        text = `অডিও শুনতে অনুগ্রহ করে ওয়েবসাইট ভিজিট করুন: <a href="${WEBSITE_LINK}" target="_blank">${WEBSITE_LINK}</a>`;
-    }
+    } 
 
     modalDetails.innerHTML = `
         <div class="fallback-container">
