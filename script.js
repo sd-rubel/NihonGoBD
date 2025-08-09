@@ -87,21 +87,6 @@ function applyTheme(themeName) {
     }
 }
 
-// নতুন ফাংশন যা একটি URL থেকে অডিও প্লে করবে
-function playAudioFromUrl(text) {
-    if (text) {
-        const audio = new Audio();
-        // Google Translate TTS URL
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=ja&client=tw-ob`;
-        audio.src = url;
-        audio.play().catch(error => {
-            console.error("Audio playback failed:", error);
-            showToast("অডিও প্লে করতে সমস্যা হচ্ছে।");
-        });
-    }
-}
-
-
 function showToast(message) {
     let toast = document.getElementById("toast-notification");
     if (!toast) {
@@ -239,7 +224,11 @@ function showVocabularyModal(item) {
     audioIcons.forEach(icon => {
         icon.addEventListener('click', () => {
             const textToSpeak = icon.dataset.text;
-            playAudioFromUrl(textToSpeak);
+            if (window.responsiveVoice) {
+                responsiveVoice.speak(textToSpeak, 'Japanese Female');
+            } else {
+                showToast("অডিও সার্ভিস লোড হতে সমস্যা হচ্ছে।");
+            }
         });
     });
 }
@@ -262,6 +251,8 @@ function showModalFallback(featureName) {
 `;
         showCopyBtn = true;
     } else if (featureName === 'Text-to-Speech') {
+        // এই ব্লকটি এখন অপ্রয়োজনীয়, কারণ ResponsiveVoice কাজ না করলে অন্য মেসেজ দেখাবে।
+        // তবে, পুরনো কোডের সুরক্ষার জন্য এটি রেখে দেওয়া হয়েছে।
         title = 'দুঃখিত, এই ব্রাউজারটি অডিও সমর্থন করে না।';
         text = `অডিও শুনতে অনুগ্রহ করে ওয়েবসাইট ভিজিট করুন: <a href="${WEBSITE_LINK}" target="_blank">${WEBSITE_LINK}</a>`;
     }
