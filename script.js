@@ -129,7 +129,7 @@ function showChromeFallbackModal() {
                     ${WEBSITE_LINK}
                 </a>
                 <button id="copy-site-link-btn" class="copy-btn" style="padding: 8px 10px; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; cursor: pointer;">
-                    <i class="fa-solid fa-copy" style="margin-right:6px;"></i> কপি
+                    <i class="fa-solid fa-copy" style="margin-right:6px;"></i> <span style="color: #008DB2; font-weight: bold;">কপি করুন</span>
                 </button>
             </div>
         </div>
