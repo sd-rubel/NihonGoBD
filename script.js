@@ -87,13 +87,20 @@ function applyTheme(themeName) {
     }
 }
 
-function playTextToSpeech(text) {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ja-JP';
-        window.speechSynthesis.speak(utterance);
+// নতুন ফাংশন যা একটি URL থেকে অডিও প্লে করবে
+function playAudioFromUrl(text) {
+    if (text) {
+        const audio = new Audio();
+        // Google Translate TTS URL
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=ja&client=tw-ob`;
+        audio.src = url;
+        audio.play().catch(error => {
+            console.error("Audio playback failed:", error);
+            showToast("অডিও প্লে করতে সমস্যা হচ্ছে।");
+        });
     }
 }
+
 
 function showToast(message) {
     let toast = document.getElementById("toast-notification");
@@ -211,7 +218,6 @@ function renderVocabularyTable(vocabulary) {
 }
 
 function showVocabularyModal(item) {
-    // মোডালের আসল কন্টেন্ট লোড করা হচ্ছে
     modalDetails.innerHTML = `
         <div class="modal-title-wrapper">
             <h3><span class="emoji">${item.emoji}</span> <span class="gradient-text">${item.japanese}</span></h3>
@@ -227,22 +233,17 @@ function showVocabularyModal(item) {
         <p style="font-size: 0.9em; font-style: italic; color: var(--light-text-color);"><strong>উদাহরণ উচ্চারণ:</strong> ${item.sentence.pronunciation}</p>
     `;
     vocabularyModal.style.display = 'flex';
-    shareButton.style.display = 'flex'; // শেয়ার বাটন দেখানো হচ্ছে
+    shareButton.style.display = 'flex';
 
     const audioIcons = document.querySelectorAll('.modal-audio-icon');
     audioIcons.forEach(icon => {
         icon.addEventListener('click', () => {
-            if ('speechSynthesis' in window) {
-                const textToSpeak = icon.dataset.text;
-                playTextToSpeech(textToSpeak);
-            } else {
-                showModalFallback('Text-to-Speech');
-            }
+            const textToSpeak = icon.dataset.text;
+            playAudioFromUrl(textToSpeak);
         });
     });
 }
 
-// শেয়ার এবং TTS-এর জন্য নতুন জেনেরিক ফলব্যাক ফাংশন
 function showModalFallback(featureName) {
     let title, text, showCopyBtn = false;
     
