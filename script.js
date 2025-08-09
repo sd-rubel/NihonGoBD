@@ -2,6 +2,7 @@ const API_BASE_URL = 'https://raw.githubusercontent.com/sd-rubel/N5JsonBySd/refs
 const TELEGRAM_LINK = 'https://t.me/+n38ARJuqfYA3MTA9';
 const WEBSITE_LINK = 'https://sd-rubel.github.io/NihonGoBD';
 
+// সমস্ত HTML উপাদানগুলো সঠিকভাবে সংজ্ঞায়িত করা হয়েছে
 const vocabularyBody = document.getElementById('vocabulary-body');
 const lessonList = document.getElementById('lesson-list');
 const prevBtn = document.getElementById('prev-btn');
@@ -13,6 +14,7 @@ const aboutIcon = document.getElementById('about-icon');
 const aboutModal = document.getElementById('about-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const closeAboutBtn = document.getElementById('close-about-btn');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn'); // এই লাইনে ত্রুটি ছিল, যা এখন ঠিক করা হয়েছে
 const vocabularyModal = document.getElementById('vocabulary-modal');
 const modalDetails = document.getElementById('modal-details');
 const lessonNumberDisplay = document.getElementById('lesson-number');
@@ -86,30 +88,28 @@ function applyTheme(themeName) {
     }
 }
 
+// TTS ভয়েস আছে কিনা তা পরীক্ষা করার জন্য একটি গ্লোবাল ফ্ল্যাগ
+let isJapaneseVoiceAvailable = false;
+window.speechSynthesis.onvoiceschanged = () => {
+    const voices = window.speechSynthesis.getVoices();
+    isJapaneseVoiceAvailable = voices.some(voice => voice.lang === 'ja-JP');
+};
+window.speechSynthesis.onvoiceschanged();
+
+
 function playTextToSpeech(text) {
-    if ('speechSynthesis' in window) {
+    if (isJapaneseVoiceAvailable) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
 
-        let isPlaying = false;
-        
-        utterance.onstart = () => {
-            isPlaying = true;
-        };
-
-        // যদি অডিও প্লে হওয়া শেষ হয়, তবে isPlaying কে false করে দেবে
-        utterance.onend = () => {
-            isPlaying = false;
-        };
-
-        window.speechSynthesis.speak(utterance);
-
-        // ৩ সেকেন্ডের মধ্যে অডিও প্লে না হলে ফলব্যাক দেখাবে
+        // অডিও প্লেব্যাকের জন্য একটি ছোট ডিলে যোগ করা হয়েছে
+        // যাতে কিছু ব্রাউজারে এটি সঠিকভাবে কাজ করে
         setTimeout(() => {
-            if (!isPlaying) {
-                showChromeFallbackModal();
-            }
-        }, 3000); // 3 সেকেন্ড
+            window.speechSynthesis.speak(utterance);
+        }, 100);
+    } else {
+        // যদি TTS ভয়েস না থাকে, তাহলে ফলব্যাক দেখানো হবে
+        showChromeFallbackModal();
     }
 }
 
@@ -271,8 +271,7 @@ function showVocabularyModal(item) {
         <p style="font-size: 0.9em; font-style: italic; color: var(--light-text-color);"><strong>উদাহরণ উচ্চারণ:</strong> ${item.sentence.pronunciation}</p>
     `;
 
-    // শুধুমাত্র যদি speechSynthesis সমর্থন করে, তাহলে অডিও আইকন যুক্ত করা হবে
-    if ('speechSynthesis' in window) {
+    if (isJapaneseVoiceAvailable) {
         modalHTML = `
             <div class="modal-title-wrapper">
                 <h3><span class="emoji">${item.emoji}</span> <span class="gradient-text">${item.japanese}</span></h3>
@@ -293,8 +292,7 @@ function showVocabularyModal(item) {
     vocabularyModal.style.display = 'flex';
     shareButton.style.display = 'flex';
 
-    // শুধুমাত্র যদি আইকন থাকে, তাহলে ইভেন্ট লিসেনার যুক্ত করা হবে
-    if ('speechSynthesis' in window) {
+    if (isJapaneseVoiceAvailable) {
         const audioIcons = document.querySelectorAll('.modal-audio-icon');
         audioIcons.forEach(icon => {
             icon.addEventListener('click', () => {
