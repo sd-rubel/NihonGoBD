@@ -2,7 +2,6 @@ const API_BASE_URL = 'https://raw.githubusercontent.com/sd-rubel/N5JsonBySd/refs
 const TELEGRAM_LINK = 'https://t.me/+n38ARJuqfYA3MTA9';
 const WEBSITE_LINK = 'https://sd-rubel.github.io/NihonGoBD';
 
-// সমস্ত HTML উপাদানগুলো সঠিকভাবে সংজ্ঞায়িত করা হয়েছে
 const vocabularyBody = document.getElementById('vocabulary-body');
 const lessonList = document.getElementById('lesson-list');
 const prevBtn = document.getElementById('prev-btn');
@@ -14,7 +13,7 @@ const aboutIcon = document.getElementById('about-icon');
 const aboutModal = document.getElementById('about-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const closeAboutBtn = document.getElementById('close-about-btn');
-const closeSidebarBtn = document.getElementById('close-sidebar-btn'); // এই লাইনে ত্রুটি ছিল, যা এখন ঠিক করা হয়েছে
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 const vocabularyModal = document.getElementById('vocabulary-modal');
 const modalDetails = document.getElementById('modal-details');
 const lessonNumberDisplay = document.getElementById('lesson-number');
@@ -88,19 +87,22 @@ function applyTheme(themeName) {
     }
 }
 
-// TTS ভয়েস আছে কিনা তা পরীক্ষা করার জন্য একটি গ্লোবাল ফ্ল্যাগ
-let isJapaneseVoiceAvailable = false;
-window.speechSynthesis.onvoiceschanged = () => {
-    const voices = window.speechSynthesis.getVoices();
-    isJapaneseVoiceAvailable = voices.some(voice => voice.lang === 'ja-JP');
-};
-window.speechSynthesis.onvoiceschanged();
-
 
 function playTextToSpeech(text) {
-    if (isJapaneseVoiceAvailable) {
+    if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
+
+        // অডিও সফলভাবে প্লে হলে কোন ফলব্যাক দেখাবে না
+        utterance.onend = () => {
+            console.log("Audio playback successful.");
+        };
+
+        // যদি কোনো কারণে অডিও প্লেব্যাকের চেষ্টা ব্যর্থ হয়, তাহলে ফলব্যাক মডেল দেখাবে
+        utterance.onerror = (event) => {
+            console.error("Speech synthesis error:", event.error);
+            showChromeFallbackModal();
+        };
 
         // অডিও প্লেব্যাকের জন্য একটি ছোট ডিলে যোগ করা হয়েছে
         // যাতে কিছু ব্রাউজারে এটি সঠিকভাবে কাজ করে
@@ -108,12 +110,11 @@ function playTextToSpeech(text) {
             window.speechSynthesis.speak(utterance);
         }, 100);
     } else {
-        // যদি TTS ভয়েস না থাকে, তাহলে ফলব্যাক দেখানো হবে
+        // যদি ব্রাউজার speechSynthesis API সমর্থন না করে, তাহলে ফলব্যাক দেখাবে
         showChromeFallbackModal();
     }
 }
 
-// নতুন ফলব্যাক বক্স ফাংশন
 function showChromeFallbackModal() {
     modalDetails.innerHTML = `
         <div class="fallback-container">
@@ -271,7 +272,8 @@ function showVocabularyModal(item) {
         <p style="font-size: 0.9em; font-style: italic; color: var(--light-text-color);"><strong>উদাহরণ উচ্চারণ:</strong> ${item.sentence.pronunciation}</p>
     `;
 
-    if (isJapaneseVoiceAvailable) {
+    // শুধুমাত্র যদি speechSynthesis API সমর্থন করে, তাহলে অডিও আইকন যুক্ত করা হবে
+    if ('speechSynthesis' in window) {
         modalHTML = `
             <div class="modal-title-wrapper">
                 <h3><span class="emoji">${item.emoji}</span> <span class="gradient-text">${item.japanese}</span></h3>
@@ -292,10 +294,11 @@ function showVocabularyModal(item) {
     vocabularyModal.style.display = 'flex';
     shareButton.style.display = 'flex';
 
-    if (isJapaneseVoiceAvailable) {
+    if ('speechSynthesis' in window) {
         const audioIcons = document.querySelectorAll('.modal-audio-icon');
         audioIcons.forEach(icon => {
-            icon.addEventListener('click', () => {
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation(); // ইভেন্টটি অন্য কোথাও ছড়িয়ে পড়া বন্ধ করে
                 const textToSpeak = icon.dataset.text;
                 playTextToSpeech(textToSpeak);
             });
@@ -458,11 +461,13 @@ aboutIcon.addEventListener('click', () => {
     aboutModal.style.display = 'flex';
 });
 
-closeModalBtn.addEventListener('click', () => {
+closeModalBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // ইভেন্টটি অন্য কোথাও ছড়িয়ে পড়া বন্ধ করে
     closeModal();
 });
 
-closeAboutBtn.addEventListener('click', () => {
+closeAboutBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // ইভেন্টটি অন্য কোথাও ছড়িয়ে পড়া বন্ধ করে
     aboutModal.style.display = 'none';
 });
 
