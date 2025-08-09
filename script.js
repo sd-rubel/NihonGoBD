@@ -13,7 +13,6 @@ const aboutIcon = document.getElementById('about-icon');
 const aboutModal = document.getElementById('about-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
 const closeAboutBtn = document.getElementById('close-about-btn');
-const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 const vocabularyModal = document.getElementById('vocabulary-modal');
 const modalDetails = document.getElementById('modal-details');
 const lessonNumberDisplay = document.getElementById('lesson-number');
@@ -87,13 +86,58 @@ function applyTheme(themeName) {
     }
 }
 
-// আগের playTextToSpeech ফাংশনটি আবার ব্যবহার করা হয়েছে
 function playTextToSpeech(text) {
     if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
+
+        let isPlaying = false;
+        
+        utterance.onstart = () => {
+            isPlaying = true;
+        };
+
+        // যদি অডিও প্লে হওয়া শেষ হয়, তবে isPlaying কে false করে দেবে
+        utterance.onend = () => {
+            isPlaying = false;
+        };
+
         window.speechSynthesis.speak(utterance);
+
+        // ৩ সেকেন্ডের মধ্যে অডিও প্লে না হলে ফলব্যাক দেখাবে
+        setTimeout(() => {
+            if (!isPlaying) {
+                showChromeFallbackModal();
+            }
+        }, 3000); // 3 সেকেন্ড
     }
+}
+
+// নতুন ফলব্যাক বক্স ফাংশন
+function showChromeFallbackModal() {
+    modalDetails.innerHTML = `
+        <div class="fallback-container">
+            <h4>অডিও প্লে করতে সমস্যা হচ্ছে।</h4>
+            <p style="text-align: center; color: var(--text-color);">
+                অডিও শুনতে চাইলে নিম্নে দেওয়া লিংকটি ক্রমে প্রবেশ করান, অথবা ক্রোম এ খুলুন বাটনে ক্লিক করুন।
+            </p>
+            <div style="margin-top: 15px; text-align: center;">
+                <a href="${WEBSITE_LINK}" style="color: var(--primary-color); word-break: break-all;">
+                    ${WEBSITE_LINK}
+                </a>
+            </div>
+            <button class="open-in-chrome-btn" id="open-in-chrome-btn" style="margin-top: 20px;">
+                <i class="fab fa-chrome"></i> ক্রোম এ খুলুন
+            </button>
+        </div>
+    `;
+    vocabularyModal.style.display = 'flex';
+    shareButton.style.display = 'none';
+
+    document.getElementById('open-in-chrome-btn').addEventListener('click', () => {
+        window.open(WEBSITE_LINK, '_blank');
+        closeModal();
+    });
 }
 
 
