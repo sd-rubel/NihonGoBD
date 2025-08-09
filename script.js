@@ -1,4 +1,7 @@
 const API_BASE_URL = 'https://raw.githubusercontent.com/sd-rubel/N5JsonBySd/refs/heads/DataStorage/';
+const TELEGRAM_LINK = 'https://t.me/+n38ARJuqfYA3MTA9';
+const WEBSITE_LINK = 'https://sd-rubel.github.io/NihonGoBD';
+
 const vocabularyBody = document.getElementById('vocabulary-body');
 const lessonList = document.getElementById('lesson-list');
 const prevBtn = document.getElementById('prev-btn');
@@ -18,14 +21,13 @@ const themeButtons = document.querySelectorAll('.theme-button');
 const emailLink = document.getElementById('email-link');
 
 const refreshButton = document.getElementById('refresh-button');
-// নতুন: শেষ আপডেটের সময় দেখানোর জন্য এলিমেন্ট
 const lastUpdatedDisplay = document.getElementById('last-updated-display');
+const shareButton = document.getElementById('share-btn');
 
 let currentLesson = 1;
 const totalLessons = 25;
 const CACHE_KEY = 'minna_n5_cache';
 const THEME_KEY = 'website_theme';
-// নতুন: শেষ আপডেটের সময় সংরক্ষণ করার জন্য কী
 const LAST_UPDATED_KEY = 'minna_n5_last_updated';
 
 const themes = {
@@ -90,8 +92,6 @@ function playTextToSpeech(text) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
         window.speechSynthesis.speak(utterance);
-    } else {
-        alert('দুঃখিত, আপনার ব্রাউজার Text-to-Speech সমর্থন করে না।');
     }
 }
 
@@ -112,7 +112,6 @@ function showToast(message) {
 function saveDataToCache(data) {
     try {
         localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-        // ডেটা সেভ করার সময় শেষ আপডেটের সময়ও সেভ করা হচ্ছে
         localStorage.setItem(LAST_UPDATED_KEY, new Date().toISOString());
     } catch (e) {
         console.error("Error saving to local storage", e);
@@ -129,7 +128,6 @@ function getDataFromCache() {
     }
 }
 
-// নতুন: শেষ আপডেটের সময়টি ডিসপ্লে করার ফাংশন
 function updateLastUpdatedDisplay() {
     const lastUpdated = localStorage.getItem(LAST_UPDATED_KEY);
     if (lastUpdated) {
@@ -168,7 +166,6 @@ async function fetchAndRenderLesson(lessonNumber, forceUpdate = false) {
         const updatedCache = cachedLessons || {};
         updatedCache[lessonNumber] = data;
         saveDataToCache(updatedCache);
-        // সফল আপডেটের পর সময়টি ডিসপ্লে করা হচ্ছে
         updateLastUpdatedDisplay();
 
         renderVocabularyTable(data.vocabulary);
@@ -214,6 +211,7 @@ function renderVocabularyTable(vocabulary) {
 }
 
 function showVocabularyModal(item) {
+    // মোডালের আসল কন্টেন্ট লোড করা হচ্ছে
     modalDetails.innerHTML = `
         <div class="modal-title-wrapper">
             <h3><span class="emoji">${item.emoji}</span> <span class="gradient-text">${item.japanese}</span></h3>
@@ -224,20 +222,79 @@ function showVocabularyModal(item) {
         <p style="font-size: 0.9em; color: var(--light-text-color); margin-bottom: 20px;"><strong>মন্তব্য:</strong> ${item.comment}</p>
         <hr style="border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0)); margin: 15px 0;">
         <p style="font-weight: bold; margin-bottom: 5px; color: var(--primary-color);">উদাহরণ:</p>
-        <p style="margin-bottom: 5px;">${item.sentence.jp}</p>
+        <p style="margin-bottom: 5px;">${item.sentence.jp} <i class="fa-solid fa-volume-up modal-audio-icon" data-text="${item.sentence.jp}"></i></p>
         <p style="color: var(--text-color); margin-bottom: 5px;"><strong>বাংলা অনুবাদ:</strong> ${item.sentence.bn}</p>
         <p style="font-size: 0.9em; font-style: italic; color: var(--light-text-color);"><strong>উদাহরণ উচ্চারণ:</strong> ${item.sentence.pronunciation}</p>
     `;
     vocabularyModal.style.display = 'flex';
+    shareButton.style.display = 'flex'; // শেয়ার বাটন দেখানো হচ্ছে
 
-    const audioIcon = document.querySelector('.modal-audio-icon');
-    if (audioIcon) {
-        audioIcon.addEventListener('click', () => {
-            const textToSpeak = audioIcon.dataset.text;
-            playTextToSpeech(textToSpeak);
+    const audioIcons = document.querySelectorAll('.modal-audio-icon');
+    audioIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            if ('speechSynthesis' in window) {
+                const textToSpeak = icon.dataset.text;
+                playTextToSpeech(textToSpeak);
+            } else {
+                showModalFallback('Text-to-Speech');
+            }
+        });
+    });
+}
+
+// শেয়ার এবং TTS-এর জন্য নতুন জেনেরিক ফলব্যাক ফাংশন
+function showModalFallback(featureName) {
+    let title, text, showCopyBtn = false;
+    
+    if (featureName === 'WebShare') {
+        title = 'দুঃখিত, আপনার ব্রাউজার শেয়ার অপশনটি সমর্থন করে না।';
+        text = `এখানে আপনি প্রতিটি অধ্যায়ের জাপানি শব্দের বাংলা অর্থ, সঠিক উচ্চারণ এবং উদাহরণ বাক্য সহজে খুঁজে পাবেন।
+
+মূল বৈশিষ্ট্য:
+✅ N5-এর সব ভোকাবুলারি এক জায়গায়
+✅ প্রতিটি শব্দের বাংলা অর্থ
+✅ সঠিক উচ্চারণ এবং উদাহরণ বাক্য
+
+এখনই ভিজিট করুন এবং জাপানি ভাষা শেখা আরও সহজ করুন!
+
+👇 লিঙ্ক: ${TELEGRAM_LINK}
+`;
+        showCopyBtn = true;
+    } else if (featureName === 'Text-to-Speech') {
+        title = 'দুঃখিত, এই ব্রাউজারটি অডিও সমর্থন করে না।';
+        text = `অডিও শুনতে অনুগ্রহ করে ওয়েবসাইট ভিজিট করুন: <a href="${WEBSITE_LINK}" target="_blank">${WEBSITE_LINK}</a>`;
+    }
+
+    modalDetails.innerHTML = `
+        <div class="fallback-container">
+            <h4>${title}</h4>
+            <div class="fallback-text" id="fallback-text">${text}</div>
+            ${showCopyBtn ? `<button class="copy-btn" id="copy-text-btn"><i class="fa-solid fa-copy"></i> Copy Text</button>` : ''}
+        </div>
+    `;
+    vocabularyModal.style.display = 'flex';
+    shareButton.style.display = 'none';
+
+    if (showCopyBtn) {
+        const copyBtn = document.getElementById('copy-text-btn');
+        copyBtn.addEventListener('click', async () => {
+            const textToCopy = document.getElementById('fallback-text').innerText;
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                showToast("টেক্সট কপি করা হয়েছে!");
+                closeModal();
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showToast("কপি করা সম্ভব হয়নি।");
+            }
         });
     }
 }
+
+function closeModal() {
+    vocabularyModal.style.display = 'none';
+}
+
 
 function updateNavigationButtons(lessonNumber) {
     prevBtn.style.display = lessonNumber > 1 ? 'inline-block' : 'none';
@@ -269,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lessonList.appendChild(li);
     }
     fetchAndRenderLesson(currentLesson);
-    // পেজ লোড হওয়ার সাথে সাথে শেষ আপডেটের সময় দেখানো হচ্ছে
     updateLastUpdatedDisplay();
 
     themeButtons.forEach(button => {
@@ -293,6 +349,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if(refreshButton) {
         refreshButton.addEventListener('click', () => {
             fetchAndRenderLesson(currentLesson, true); 
+        });
+    }
+
+    if (shareButton) {
+        shareButton.addEventListener('click', () => {
+            if (navigator.share) {
+                const shareText = `এখানে আপনি প্রতিটি অধ্যায়ের জাপানি শব্দের বাংলা অর্থ, সঠিক উচ্চারণ এবং উদাহরণ বাক্য সহজে খুঁজে পাবেন।\n\nমূল বৈশিষ্ট্য:\n✅ N5-এর সব ভোকাবুলারি এক জায়গায়\n✅ প্রতিটি শব্দের বাংলা অর্থ\n✅ সঠিক উচ্চারণ এবং উদাহরণ বাক্য\n\nএখনই ভিজিট করুন এবং জাপানি ভাষা শেখা আরও সহজ করুন!\n\n👇 লিঙ্ক: ${TELEGRAM_LINK}\n`;
+                
+                navigator.share({
+                    title: 'Minna No Nihongo N5 শব্দভাণ্ডার',
+                    text: shareText,
+                    url: TELEGRAM_LINK
+                }).catch((error) => console.log('Error sharing', error));
+            } else {
+                showModalFallback('WebShare');
+            }
         });
     }
 });
@@ -330,7 +402,7 @@ aboutIcon.addEventListener('click', () => {
 });
 
 closeModalBtn.addEventListener('click', () => {
-    vocabularyModal.style.display = 'none';
+    closeModal();
 });
 
 closeAboutBtn.addEventListener('click', () => {
@@ -339,7 +411,7 @@ closeAboutBtn.addEventListener('click', () => {
 
 window.addEventListener('click', (event) => {
     if (event.target === vocabularyModal) {
-        vocabularyModal.style.display = 'none';
+        closeModal();
     }
     if (event.target === aboutModal) {
         aboutModal.style.display = 'none';

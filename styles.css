@@ -222,7 +222,7 @@ body {
     transform: scale(1.1);
 }
 
-/* New Update Data Button */
+/* Update Data Button */
 .update-data-btn {
     background: var(--primary-color);
     color: white;
@@ -249,7 +249,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* New: Last Updated text */
+/* Last Updated text */
 .last-updated-text {
     text-align: center;
     font-size: 0.8rem;
@@ -386,6 +386,12 @@ body {
     animation: fadeIn 0.2s ease-out;
     transition: background 0.3s;
 }
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
 .close-btn {
     position: absolute;
     top: 10px;
@@ -438,6 +444,85 @@ body {
 .modal-audio-icon:hover {
     transform: scale(1.1);
 }
+
+/* Share Button */
+.share-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.share-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+.share-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Fallback Share UI */
+.share-fallback-container {
+    text-align: left;
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+.share-fallback-container h4 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.share-fallback-text {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 8px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.copy-btn {
+    width: 100%;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.copy-btn:hover {
+    background: #d4683c;
+    transform: translateY(-2px);
+}
+.copy-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 
 /* About Card Specific Styles */
 .about-card .profile-pic {
